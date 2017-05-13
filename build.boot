@@ -1,14 +1,18 @@
 (def project 'provisdom/spectomic)
-(def version "0.1-alpha1")
+(def version "0.1.0")
 
 (set-env! :resource-paths #{"src"}
           :source-paths #{"test"}
           :dependencies '[[adzerk/boot-test "1.2.0" :scope "test"]
+                          [adzerk/bootlaces "0.1.13" :scope "test"]
                           [org.clojure/test.check "0.9.0" :scope "test"]
 
                           [org.clojure/clojure "1.9.0-alpha15"]])
 
-(require '[adzerk.boot-test :refer [test]])
+(require '[adzerk.boot-test :refer [test]]
+         '[adzerk.bootlaces :refer :all])
+
+(bootlaces! version)
 
 (task-options!
   pom {:project     project
@@ -40,3 +44,7 @@
     (fn [& xs]
       (dev-env!)
       (apply g xs))))
+
+(deftask deploy
+         []
+         (comp (build-jar) (push-release)))
