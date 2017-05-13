@@ -1,0 +1,23 @@
+sudo: false
+language: java
+jdk:
+  - oraclejdk8
+
+install:
+  - mkdir -p ~/bin
+  - export PATH=~/bin:$PATH
+  - curl -L https://github.com/boot-clj/boot-bin/releases/download/2.7.1/boot.sh -o ~/bin/boot
+  - chmod +x ~/bin/boot
+
+script: boot run-tests
+
+env:
+  matrix:
+    - BOOT_CLOJURE_VERSION=1.9.0-alpha15
+
+cache:
+  directories:
+  - $HOME/.m2
+  - $HOME/.boot/cache/bin
+  - $HOME/.boot/cache/lib
+  - $HOME/bin
