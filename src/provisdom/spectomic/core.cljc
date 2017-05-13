@@ -4,6 +4,8 @@
     [clojure.spec.gen :as sgen]
     [provisdom.spectomic.specs :as spectomic]))
 
+(alias 'tgen 'clojure.test.check.generators)
+
 ;; this could be a multimethod?
 (def ^:private class->datomic-type
   {java.lang.String     :db.type/string
@@ -50,7 +52,7 @@
                                    (not-empty s)
                                    true))) (s/gen spec))
         samples (binding [s/*recursion-limit* 1]
-                  (sgen/sample g 100))
+                  (sgen/sample ((resolve `tgen/resize) 10 g) 100))
         types (sample-types samples)]
     ;; Makes sure we are getting consistent types from the generator. If types are inconsistent then schema
     ;; generation is unclear.
