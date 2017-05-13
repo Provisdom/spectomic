@@ -9,14 +9,10 @@
   #{:db.type/string :db.type/boolean :db.type/long :db.type/bigint :db.type/float :db.type/double :db.type/bigdec
     :db.type/instant :db.type/uuid :db.type/uri :db.type/keyword :db.type/bytes :db.type/ref})
 
-(def datomic-schema-keys
-  #{:db/id :db/ident :db/valueType :db/cardinality :db/doc :db/unique :db/index :db/isComponent :db/noHistory
-    :db/fulltext :db.install/_attribute :db.install/_partition})
-
 (s/def ::tempid
   (s/with-gen
     (s/or
-      #?@(:clj [:dbid #(instance? datomic.db.DbId %)])
+      #?@(:clj [:dbid #(instance? (Class/forName "datomic.db.DbId") %)])
       :string (s/and string? #(not (str/starts-with? % ":"))))
     (fn [] (gen/return ((resolve 'datomic.api/tempid) :db.part/db)))))
 
