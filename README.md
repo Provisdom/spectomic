@@ -31,7 +31,7 @@ a basic example.
 ```
 
 In this example we define the spec `::string` and then pass it to `datomic-schema` which 
-returns us a collection of schema matching the data our `::string` spec represents. Now 
+returns a collection of schema matching the data our `::string` spec represents. Now 
 let's look at a more complicated example.
 
 ```clojure
@@ -76,10 +76,9 @@ let's look at a more complicated example.
      :db/cardinality :db.cardinality/many}]
 ```
 
-In this example we have a `::user` entity who is uniquely identified by an `:entity/id`. The
-user also have a collection of his or her favorite foods `:user/favorite-foods` and a collection
-of orders `:user/orders` (the `::orders` spec is defined elsewhere and is not important for this
-example). 
+In this example we have a `::user` entity that is uniquely identified by an `:entity/id`. The
+user also has a collection of his or her favorite foods `:user/favorite-foods` and a collection
+of orders `:user/orders`. 
 
 We need to let `datomic-schema` know that `:entity/id` is unique. We do this be providing `datomic-schema`
 with a tuple instead of just the spec keyword. The first element of the tuple is the spec and the second
@@ -94,7 +93,39 @@ returned schema, `:user/favorite-foods` is `:db.cardinality/many` and `:db.type/
 `:user/orders` is a collection of maps of the for dictated by the spec `::orders`. And our returned schema
 is of type `:db.type/ref` and `:db.cardinality/many`.
 
-TODO: Add note about float
+## Caveats
+
+### Misleading Generators
+
+When writing your specs you need to be mindful of the generator that is used for the spec. One misleading
+predicate generator is `float?`. `float?`'s generator actually uses the same generator as `double?`, meaning
+it does not return a number with type `java.lang.Float`. This is problematic for our schema generator as it
+relies on your objects having the correct type that they represent. This is not a bug in Clojure spec however.
+If you look at how `float?` is defined you will see that `float?` returns true if the object is a `java.lang.Double`
+or a `java.lang.Float`. To combat this we can write our own `::float` spec like this:
+
+```clojure
+(s/def ::float
+  (s/with-gen
+    #(instance? java.lang.Float %)
+    #(gen/fmap float
+               (s/gen (s/double-in :min Float/MIN_VALUE :max Float/MAX_VALUE :infinite? false :NaN? false)))))
+```
+
+### Rare Edge Cases
+
+If you write a Spec that uses a generator that will return values of a different type very rarely then you
+will run into schema generation problems. Make sure your generators are returning consistent types.
+
+## Implementation
+
+Rather than parsing every Spec form, we chose to implement this library using generators. Every Spec that is
+passed to `datomic-schema` or `datascript-schema` is sampled 100 times using test.check. The type of each 
+sample is then matched with a Datomic type. Next we make sure that each sample is of the same type. If your
+generator is returning multiple types for a Spec then it's not clear how the schema should be generated so
+an error is thrown. If the type is a collection then we need to verify that for each sample, every element 
+in the collection is of the same type. If that is true then we return a map with `:db.cardinality/many` and
+the `:db/valueType` set to the type of object the collection contains. 
 
 ## License
 
