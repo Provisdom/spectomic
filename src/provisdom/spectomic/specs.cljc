@@ -18,7 +18,7 @@
     (s/or
       #?@(:clj [:dbid #(instance? datomic.db.DbId %)])
       :string (s/and string? #(not (str/starts-with? % ":"))))
-    (fn [] (gen/return (datomic.api/tempid :db.part/db)))))
+    (fn [] (gen/return ((resolve 'datomic.api/tempid) :db.part/db)))))
 
 (s/def :db/id
   (s/or
