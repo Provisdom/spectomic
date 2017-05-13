@@ -9,7 +9,7 @@ install:
   - curl -L https://github.com/boot-clj/boot-bin/releases/download/2.7.1/boot.sh -o ~/bin/boot
   - chmod +x ~/bin/boot
 
-script: boot run-tests
+script: boot test
 
 env:
   matrix:
