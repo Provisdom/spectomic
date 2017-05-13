@@ -1,0 +1,6 @@
+image: computesoftware/clojure:dc3b79b3f80ad75e0e9f92cc0e63d559a7a5f41a
+
+deploy:
+  stage: deploy
+  script:
+    - boot push-jar
