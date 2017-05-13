@@ -1,4 +1,5 @@
 # spectomic
+[![Build Status](https://travis-ci.org/Provisdom/spectomic.svg?branch=master)](https://travis-ci.org/Provisdom/spectomic)
 
 Generate Datomic or Datascript schema from your Clojure(script) specs.
 
