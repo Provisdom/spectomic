@@ -7,7 +7,7 @@
                           [adzerk/bootlaces "0.1.13" :scope "test"]
                           [org.clojure/test.check "0.9.0" :scope "test"]
 
-                          [org.clojure/clojure "1.9.0-alpha15"]])
+                          [org.clojure/clojure "1.9.0-alpha15" :scope "provided"]])
 
 (require '[adzerk.boot-test :refer [test]]
          '[adzerk.bootlaces :refer :all])
@@ -23,26 +23,27 @@
        :license     {"Eclipse Public License"
                      "http://www.eclipse.org/legal/epl-v10.html"}})
 
-(defn dev-env!
-  []
-  (set-env!
-    :repositories #(conj %
-                         ["datomic" {:url      "https://my.datomic.com/repo"
-                                     :username (System/getenv "DATOMIC_USERNAME")
-                                     :password (System/getenv "DATOMIC_PASSWORD")}])
-    :dependencies #(conj % '[com.datomic/datomic-pro "0.9.5561"])))
+(deftask dev-env
+         []
+         (set-env!
+           :repositories #(conj %
+                                ["datomic" {:url      "https://my.datomic.com/repo"
+                                            :username (System/getenv "DATOMIC_USERNAME")
+                                            :password (System/getenv "DATOMIC_PASSWORD")}])
+           :dependencies #(conj % '[com.datomic/datomic-pro "0.9.5561"]))
+         identity)
 
 (replace-task!
   [r repl]
   (fn [& xs]
-    (dev-env!)
+    (dev-env)
     (apply r xs)))
 
 (when (resolve 'lein-generate)
   (replace-task!
     [g lein-generate]
     (fn [& xs]
-      (dev-env!)
+      (dev-env)
       (apply g xs))))
 
 (deftask deploy
