@@ -1,4 +1,4 @@
-(ns provisdom.spectomic.core-test
+(ns provisdom.spectomic.t-core
   (:require
     [clojure.test :refer :all]
     [clojure.spec :as s]
