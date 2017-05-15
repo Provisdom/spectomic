@@ -39,12 +39,10 @@
     (dev-env)
     (apply r xs)))
 
-(when (resolve 'lein-generate)
-  (replace-task!
-    [g lein-generate]
-    (fn [& xs]
-      (dev-env)
-      (apply g xs))))
+(when-let [v (resolve 'lein-generate)]
+  (alter-var-root v
+                  (fn [g]
+                    (fn [& xs] (dev-env) (apply g xs)))))
 
 (deftask deploy
          []
