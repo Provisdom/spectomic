@@ -1,7 +1,7 @@
 (ns provisdom.spectomic.core
   (:require
-    [clojure.spec :as s]
-    [clojure.spec.gen :as sgen]
+    [clojure.spec.alpha :as s]
+    [clojure.spec.gen.alpha :as sgen]
     [provisdom.spectomic.specs :as spectomic]))
 
 ;; this could be a multimethod?
