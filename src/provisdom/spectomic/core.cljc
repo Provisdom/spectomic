@@ -83,7 +83,7 @@
         (map (fn [s]
                (let [[spec extra-schema] (spec-and-data s)]
                  (merge
-                   (assoc (spec->datomic-schema spec)
+                   (assoc (if (:db/valueType extra-schema) {} (spec->datomic-schema spec))
                      :db/ident spec)
                    extra-schema))))
         specs))
