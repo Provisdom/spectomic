@@ -48,10 +48,10 @@ let's look at a more complicated example.
 (s/def :order/name string?)
 => :order/name
 
-(s/def :user/orders (s/keys :req [:entity/id :order/name]))
+(s/def :user/order (s/keys :req [:entity/id :order/name]))
 => :user/orders
 
-(s/def :user/orders (s/coll-of ::order))
+(s/def :user/orders (s/coll-of :user/order))
 => :user/orders
 
 (s/def ::user (s/keys :req [:entity/id :user/name :user/favorite-foods :user/orders]))
