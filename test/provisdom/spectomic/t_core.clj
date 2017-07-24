@@ -124,3 +124,17 @@
      ::uuid    {:db/valueType :db.type/uuid :db/cardinality :db.cardinality/one}}
     [::string ::int ::inst ::double ::float ::uuid
      ::bigdec ::bigint ::uri ::keyword ::bytes]))
+
+(defmulti foo :foo)
+(s/def ::foo (s/multi-spec foo :foo))
+(deftest datomic-schema*-valueType-test
+  (are [schema specs] (= schema (spectomic/datomic-schema* specs))
+                      [{:db/ident       ::string
+                        :db/valueType   :db.type/keyword
+                        :db/cardinality :db.cardinality/one}]
+                      [[::string {:db/valueType :db.type/keyword :db/cardinality :db.cardinality/one}]]))
+
+(deftest datascript-schema*-valueType-test
+  (are [schema specs] (= schema (spectomic/datascript-schema* specs))
+                      {::string {:db/valueType   :db.type/keyword :db/cardinality :db.cardinality/one}}
+                      [[::string {:db/valueType :db.type/keyword :db/cardinality :db.cardinality/one}]]))
