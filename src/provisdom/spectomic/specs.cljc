@@ -51,3 +51,5 @@
     (s/merge
       ::datomic-optional-field-schema
       (s/keys :req [:db/ident :db/valueType :db/cardinality]))))
+
+(s/def ::schema-entry (s/or :att keyword? :att-and-schema (s/tuple keyword? map?)))
