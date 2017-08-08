@@ -73,9 +73,13 @@
 
 (defn- spec-and-data
   [s]
-  (if (vector? s)
-    s
-    [s {}]))
+  (let [c (s/conform ::spectomic/schema-entry s)]
+    (if (= ::s/invalid c)
+      (throw (ex-info "Invalid schema entry" {:data s}))
+      (let [[b s] c]
+        (condp = b
+          :att [s {}]
+          :att-and-schema s)))))
 
 (defn datomic-schema*
   [specs]
