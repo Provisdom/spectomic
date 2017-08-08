@@ -18,13 +18,19 @@
    java.net.URI         :db.type/uri
    clojure.lang.Keyword :db.type/keyword})
 
+(def datomic-types (conj (set (vals class->datomic-type)) :db.type/bytes :db.type/ref))
+
+(defn datomic-type?
+  [x]
+  "Returns true if `x` is a datomic type."
+  (some? (datomic-types x)))
+
 (defn- obj->datomic-type
   [obj]
   (let [t (type obj)]
     (cond
       (contains? class->datomic-type t) (class->datomic-type t)
       (map? obj) :db.type/ref
-      (coll? obj) :coll
       (nil? obj) nil
       (= (Class/forName "[B") (.getClass obj)) :db.type/bytes
       :else (type obj))))
@@ -34,7 +40,11 @@
   [samples]
   (into #{}
         (comp
-          (map obj->datomic-type)
+          (map (fn [sample]
+                 (if (or (sequential? sample) (set? sample))
+                   ::cardinality-many
+                   (obj->datomic-type sample))))
+          ;; we need to remove nils for the cases where a spec is nilable.
           (filter some?))
         samples))
 
@@ -54,22 +64,25 @@
         types (sample-types samples)]
     ;; Makes sure we are getting consistent types from the generator. If types are inconsistent then schema
     ;; generation is unclear.
-    (if (> (count types) 1)
-      (throw (ex-info "Spec resolves to multiple types." {:spec spec :types types}))
-      (if (empty? types)
-        (throw (ex-info "No matching Datomic types." {:spec spec}))
-        (let [t (first types)]
-          (if (= t :coll)
-            (let [collection-types (sample-types (mapcat identity samples))]
-              (cond
-                (> (count collection-types) 1)
-                (throw (ex-info "Spec collection contains multiple types." {:spec spec :types collection-types}))
-                (= :coll (first collection-types))
-                (throw (ex-info "Cannot create schema for a collection of collections." {:spec spec}))
-                :else {:db/valueType   (first collection-types)
-                       :db/cardinality :db.cardinality/many}))
-            {:db/valueType   t
-             :db/cardinality :db.cardinality/one}))))))
+    (cond
+      (> (count types) 1) (throw (ex-info "Spec resolves to multiple types." {:spec spec :types types}))
+      (empty? types) (throw (ex-info "No matching Datomic types." {:spec spec}))
+      :else
+      (let [t (first types)]
+        (cond
+          (= t ::cardinality-many) (let [collection-types (sample-types (mapcat identity samples))]
+                                     (cond
+                                       (> (count collection-types) 1)
+                                       (throw (ex-info "Spec collection contains multiple types."
+                                                       {:spec spec :types collection-types}))
+                                       (= ::cardinality-many (first collection-types))
+                                       (throw (ex-info "Cannot create schema for a collection of collections."
+                                                       {:spec spec}))
+                                       :else {:db/valueType   (first collection-types)
+                                              :db/cardinality :db.cardinality/many}))
+          (datomic-type? t) {:db/valueType   t
+                             :db/cardinality :db.cardinality/one}
+          :else (throw (ex-info "Invalid Datomic type." {:spec spec :type t})))))))
 
 (defn- spec-and-data
   [s]
