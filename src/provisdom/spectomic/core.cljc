@@ -26,63 +26,64 @@
   (some? (datomic-types x)))
 
 (defn- obj->datomic-type
-  [obj]
+  [obj custom-type-resolver]
   (let [t (type obj)]
     (cond
       (contains? class->datomic-type t) (class->datomic-type t)
       (map? obj) :db.type/ref
       (nil? obj) nil
       (= (Class/forName "[B") (.getClass obj)) :db.type/bytes
-      :else (type obj))))
+      :else (custom-type-resolver obj))))
 
 (defn sample-types
   "Returns a set of all the datomic types `samples` contains."
-  [samples]
+  [samples custom-type-resolver]
   (into #{}
         (comp
           (map (fn [sample]
                  (if (or (sequential? sample) (set? sample))
                    ::cardinality-many
-                   (obj->datomic-type sample))))
+                   (obj->datomic-type sample custom-type-resolver))))
           ;; we need to remove nils for the cases where a spec is nilable.
           (filter some?))
         samples))
 
 (defn- spec->datomic-schema
   "Returns Datomic schema for `spec`."
-  [spec]
-  (let [g (sgen/such-that (fn [s]
-                            ;; we need a sample that is not nil
-                            (and (some? s)
-                                 ;; if the sample is a collection, then we need a collection that is not empty.
-                                 ;; we cannot generate Datomic schema with an empty collection.
-                                 (if (coll? s)
-                                   (not-empty s)
-                                   true))) (s/gen spec))
-        samples (binding [s/*recursion-limit* 1]
-                  (sgen/sample ((resolve 'clojure.test.check.generators/resize) 10 g) 100))
-        types (sample-types samples)]
-    ;; Makes sure we are getting consistent types from the generator. If types are inconsistent then schema
-    ;; generation is unclear.
-    (cond
-      (> (count types) 1) (throw (ex-info "Spec resolves to multiple types." {:spec spec :types types}))
-      (empty? types) (throw (ex-info "No matching Datomic types." {:spec spec}))
-      :else
-      (let [t (first types)]
-        (cond
-          (= t ::cardinality-many) (let [collection-types (sample-types (mapcat identity samples))]
-                                     (cond
-                                       (> (count collection-types) 1)
-                                       (throw (ex-info "Spec collection contains multiple types."
-                                                       {:spec spec :types collection-types}))
-                                       (= ::cardinality-many (first collection-types))
-                                       (throw (ex-info "Cannot create schema for a collection of collections."
-                                                       {:spec spec}))
-                                       :else {:db/valueType   (first collection-types)
-                                              :db/cardinality :db.cardinality/many}))
-          (datomic-type? t) {:db/valueType   t
-                             :db/cardinality :db.cardinality/one}
-          :else (throw (ex-info "Invalid Datomic type." {:spec spec :type t})))))))
+  ([spec] (spec->datomic-schema spec nil))
+  ([spec custom-type-resolver]
+   (let [g (sgen/such-that (fn [s]
+                             ;; we need a sample that is not nil
+                             (and (some? s)
+                                  ;; if the sample is a collection, then we need a collection that is not empty.
+                                  ;; we cannot generate Datomic schema with an empty collection.
+                                  (if (coll? s)
+                                    (not-empty s)
+                                    true))) (s/gen spec))
+         samples (binding [s/*recursion-limit* 1]
+                   (sgen/sample ((resolve 'clojure.test.check.generators/resize) 10 g) 100))
+         types (sample-types samples custom-type-resolver)]
+     ;; Makes sure we are getting consistent types from the generator. If types are inconsistent then schema
+     ;; generation is unclear.
+     (cond
+       (> (count types) 1) (throw (ex-info "Spec resolves to multiple types." {:spec spec :types types}))
+       (empty? types) (throw (ex-info "No matching Datomic types." {:spec spec}))
+       :else
+       (let [t (first types)]
+         (cond
+           (= t ::cardinality-many) (let [collection-types (sample-types (mapcat identity samples) custom-type-resolver)]
+                                      (cond
+                                        (> (count collection-types) 1)
+                                        (throw (ex-info "Spec collection contains multiple types."
+                                                        {:spec spec :types collection-types}))
+                                        (= ::cardinality-many (first collection-types))
+                                        (throw (ex-info "Cannot create schema for a collection of collections."
+                                                        {:spec spec}))
+                                        :else {:db/valueType   (first collection-types)
+                                               :db/cardinality :db.cardinality/many}))
+           (datomic-type? t) {:db/valueType   t
+                              :db/cardinality :db.cardinality/one}
+           :else (throw (ex-info "Invalid Datomic type." {:spec spec :type t}))))))))
 
 (defn- spec-and-data
   [s]
@@ -95,15 +96,17 @@
           :att-and-schema s)))))
 
 (defn datomic-schema*
-  [specs]
-  (into []
-        (map (fn [s]
-               (let [[spec extra-schema] (spec-and-data s)]
-                 (merge
-                   (assoc (if (:db/valueType extra-schema) {} (spec->datomic-schema spec))
-                     :db/ident spec)
-                   extra-schema))))
-        specs))
+  ([specs] (datomic-schema* specs nil))
+  ([specs {:keys [custom-type-resolver]
+           :or   {custom-type-resolver type}}]
+   (into []
+         (map (fn [s]
+                (let [[spec extra-schema] (spec-and-data s)]
+                  (merge
+                    (assoc (if (:db/valueType extra-schema) {} (spec->datomic-schema spec custom-type-resolver))
+                      :db/ident spec)
+                    extra-schema))))
+         specs)))
 
 (s/fdef datomic-schema*
         :args (s/cat :specs
@@ -113,17 +116,19 @@
         :ret ::spectomic/datomic-field-schema)
 
 (defmacro datomic-schema
-  [& specs]
-  (datomic-schema* specs))
+  ([specs] `(datomic-schema ~specs nil))
+  ([specs opts]
+   (datomic-schema* specs)))
 
 (defn datascript-schema*
-  [specs]
-  (let [s (datomic-schema* specs)]
-    (reduce (fn [ds-schema schema]
-              (assoc ds-schema
-                (:db/ident schema)
-                (dissoc schema :db/ident)))
-            {} s)))
+  ([specs] (datascript-schema* specs nil))
+  ([specs opts]
+   (let [s (datomic-schema* specs opts)]
+     (reduce (fn [ds-schema schema]
+               (assoc ds-schema
+                 (:db/ident schema)
+                 (dissoc schema :db/ident)))
+             {} s))))
 
 (s/fdef datascript-schema*
         :args (s/cat :specs
@@ -133,5 +138,7 @@
         :ret ::spectomic/datascript-schema)
 
 (defmacro datascript-schema
-  [& specs]
-  (datascript-schema* specs))
+  ([specs] `(datascript-schema ~specs nil))
+  ([specs opts]
+   (datascript-schema* specs opts)))
+

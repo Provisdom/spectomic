@@ -25,7 +25,7 @@ a basic example.
 (s/def ::string string?)
 => :boot.user/string
 
-(spectomic/datomic-schema ::string)
+(spectomic/datomic-schema [::string])
 => [{:db/ident       :boot.user/string
      :db/valueType   :db.type/string
      :db/cardinality :db.cardinality/one}]
@@ -57,10 +57,10 @@ let's look at a more complicated example.
 (s/def ::user (s/keys :req [:entity/id :user/name :user/favorite-foods :user/orders]))
 => :boot.user/user
 
-(spectomic/datomic-schema [:entity/id {:db/unique :db.unique/identity
-                                       :db/index  true}]
-                          :user/name
-                          :user/favorite-foods)
+(spectomic/datomic-schema [[:entity/id {:db/unique :db.unique/identity
+                                        :db/index  true}]
+                           :user/name
+                           :user/favorite-foods])
 => [{:db/ident       :entity/id
      :db/valueType   :db.type/uuid
      :db/cardinality :db.cardinality/one
@@ -93,6 +93,17 @@ returned schema, `:user/favorite-foods` is `:db.cardinality/many` and `:db.type/
 
 `:user/orders` is a collection of maps of the for dictated by the spec `::orders`. And our returned schema
 is of type `:db.type/ref` and `:db.cardinality/many`.
+
+### Resolving Custom Types
+Your code may use types that are not resolvable to Datomic types with the default type type resolver 
+implementation. One option to this problem is to use the schema entry format you saw above with `:entity/id`.
+If you recall, we set the `:db/unique` property for `:entity/id` to `:db.unique/identity`. You can actually
+manually set the `:db/valueType` too. This could, however, become very repetitive. 
+
+The second option is to pass a map with the `:custom-type-resolver` key set to a function that returns a
+Datomic type. If the default type resolver cannot resolve an object's type, your function will be called
+with the object passed to it as the only argument. Your function is expected to return a valid Datomic 
+type, as defined [here](http://docs.datomic.com/schema.html#required-schema-attributes).
 
 ## Caveats
 
