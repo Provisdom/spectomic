@@ -1,5 +1,9 @@
 # Change Log
 
+## [0.4.1] - 2017-08-08
+### Fixed
+- The specs for `datomic-schema*` and `datascript-schema*` are now correct for the two arity case.
+
 ## [0.4.0] - 2017-08-08
 ### Breaking
 - API now expects specs to be passed in a vector
