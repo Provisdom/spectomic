@@ -2,7 +2,8 @@
   (:require
     [clojure.spec.alpha :as s]
     [clojure.spec.gen.alpha :as gen]
-    [clojure.string :as str]))
+    [clojure.string :as str]
+    [clojure.spec.alpha :as s]))
 
 
 (def datomic-value-types
@@ -53,3 +54,6 @@
       (s/keys :req [:db/ident :db/valueType :db/cardinality]))))
 
 (s/def ::schema-entry (s/or :att keyword? :att-and-schema (s/tuple keyword? map?)))
+
+(s/def ::custom-type-resolver (s/fspec :args (s/cat :object any?)))
+(s/def ::schema-options (s/keys :opt-un [::custom-type-resolver]))

@@ -3,7 +3,10 @@
     [clojure.test :refer :all]
     [clojure.spec.alpha :as s]
     [clojure.spec.gen.alpha :as gen]
+    [clojure.spec.test.alpha :as st]
     [provisdom.spectomic.core :as spectomic]))
+
+(st/instrument)
 
 ;; basic Datomic types
 (s/def ::string string?)
