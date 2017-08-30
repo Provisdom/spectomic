@@ -1,5 +1,11 @@
 # Change Log
 
+## [0.5.0] - 2017-08-30
+### Breaking
+- Removed `datomic-schema` and `datascript-schema` macros.
+- Changed `datomic-schema*` and `datascript-schema*` to `datomic-schema` and `datascript-schema`,
+respectively.
+
 ## [0.4.1] - 2017-08-08
 ### Fixed
 - The specs for `datomic-schema*` and `datascript-schema*` are now correct for the two arity case.

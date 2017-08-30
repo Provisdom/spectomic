@@ -13,9 +13,7 @@ Generate Datomic or Datascript schema from your Clojure(script) specs.
 
 ## Usage
 
-Your schema can be generated at compile time or at runtime. For these examples
-we will use macros to generate the schema at compile time. Let's take a look at
-a basic example.
+Let's take a look at a basic example.
 
 ```clojure
 (require '[clojure.spec :as s]
@@ -104,6 +102,68 @@ The second option is to pass a map with the `:custom-type-resolver` key set to a
 Datomic type. If the default type resolver cannot resolve an object's type, your function will be called
 with the object passed to it as the only argument. Your function is expected to return a valid Datomic 
 type, as defined [here](http://docs.datomic.com/schema.html#required-schema-attributes).
+
+## Usage in Production
+
+This library provides two functions for generating schema from specs: `datomic-schema` and `datascript-schema`.
+Both function calls occur at **runtime**. This means that if you include this library as a runtime dependency,
+test.check will also be included. Often you don't want test.check as a runtime dependency so it is suggested that you
+include this dependency as `test` scope (e.g. `[provisdom/spectomic "x.x.x" :scope "test"]`). Including this library 
+with `test` scope means that all your calls need to happen at compile time or elsewhere. Here are two examples of how
+this library can be used at compile time.
+
+### Macro
+
+It is convenient to store the list of specs you want to convert into schema as a var. By doing so you are able to easily
+add new specs to the schema list at any time. We will use a `def`'ed var as an example. 
+
+```clojure
+(def schema-specs [[:entity/id {:db/unique :db.unique/identity :db/index true}] :user/name :user/favorite-foods])
+```
+
+Now let's write a `def`-like macro that will generate our schema at compile time:
+
+```clojure
+(defmacro defschema
+  [name]
+  `(def ~name (spectomic/datomic-schema schema-specs)))
+
+(defschema my-schema)
+```
+
+Now our schema is statically compiled and available in the var `my-schema`.
+
+### Build time
+
+Sometimes you may want to save your schema into an actual EDN file for use in multiple places. This can be easily
+accomplished with a Boot task.
+
+```clojure
+(require '[provisdom.spectomic.core :as spectomic])
+
+(deftask generate-schema
+  [s sym VAL sym "This symbol will be resolved and have its content passed to `datomic-schema`."]
+  (spit "my-schema.edn" (spectomic/datomic-schema @(resolve sym))))
+```
+
+This task is simple but does not adhere to Boot's design patterns. Here's a slightly more complex example that integrates
+well with other tasks.
+
+```clojure
+(require '[clojure.java.io :as io])
+
+(deftask generate-schema
+  [s sym VAL sym "This symbol will be resolved and have its content passed to `datomic-schema`."
+   o out-file VAL str "Name of the file for the schema to be outputted to. Defaults to schema.edn"]
+  (let [specs-var (resolve sym)]
+    (assert specs-var "The symbol provided cannot be resolved.")
+    (with-pre-wrap fileset
+      (let [out-file-name (or out-file "schema.edn")
+            out-dir (tmp-dir!)
+            out-file (io/file out-dir out-file-name)]
+        (spit out-file (spectomic/datomic-schema @specs-var))
+        (commit! (add-resource fileset out-dir))))))
+```
 
 ## Caveats
 

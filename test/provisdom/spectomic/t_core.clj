@@ -49,7 +49,7 @@
                               #(gen/return (MyObject.))))
 
 (deftest datomic-schema*-test
-  (are [schema specs] (= schema (spectomic/datomic-schema* specs))
+  (are [schema specs] (= schema (spectomic/datomic-schema specs))
     ;; basic Datomic types
     [{:db/ident       ::string
       :db/valueType   :db.type/string
@@ -109,11 +109,11 @@
       :db/index       true
       :db/unique      :db.unique/identity}]
     [[::int {:db/index true :db/unique :db.unique/identity}]])
-  (are [spec] (thrown? clojure.lang.ExceptionInfo (spectomic/datomic-schema* [spec]))
+  (are [spec] (thrown? clojure.lang.ExceptionInfo (spectomic/datomic-schema [spec]))
     ::nil ::or ::or-coll ::coll-of-coll ::myobject))
 
 (deftest datascript-schema*-test
-  (are [schema specs] (= schema (spectomic/datascript-schema* specs))
+  (are [schema specs] (= schema (spectomic/datascript-schema specs))
     {::double  {:db/valueType :db.type/double :db/cardinality :db.cardinality/one}
      ::inst    {:db/valueType :db.type/instant :db/cardinality :db.cardinality/one}
      ::int     {:db/valueType :db.type/long :db/cardinality :db.cardinality/one}
@@ -131,13 +131,13 @@
 (defmulti foo :foo)
 (s/def ::foo (s/multi-spec foo :foo))
 (deftest datomic-schema*-valueType-test
-  (are [schema specs] (= schema (spectomic/datomic-schema* specs))
+  (are [schema specs] (= schema (spectomic/datomic-schema specs))
     [{:db/ident       ::string
       :db/valueType   :db.type/keyword
       :db/cardinality :db.cardinality/one}]
     [[::string {:db/valueType :db.type/keyword :db/cardinality :db.cardinality/one}]]))
 
 (deftest datascript-schema*-valueType-test
-  (are [schema specs] (= schema (spectomic/datascript-schema* specs))
+  (are [schema specs] (= schema (spectomic/datascript-schema specs))
     {::string {:db/valueType :db.type/keyword :db/cardinality :db.cardinality/one}}
     [[::string {:db/valueType :db.type/keyword :db/cardinality :db.cardinality/one}]]))

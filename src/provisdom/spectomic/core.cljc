@@ -95,8 +95,8 @@
           :att [s {}]
           :att-and-schema s)))))
 
-(defn datomic-schema*
-  ([specs] (datomic-schema* specs nil))
+(defn datomic-schema
+  ([specs] (datomic-schema specs nil))
   ([specs {:keys [custom-type-resolver]
            :or   {custom-type-resolver type}}]
    (into []
@@ -108,7 +108,7 @@
                     extra-schema))))
          specs)))
 
-(s/fdef datomic-schema*
+(s/fdef datomic-schema
         :args (s/cat :specs
                      (s/coll-of
                        (s/or :spec qualified-keyword?
@@ -116,31 +116,20 @@
                      :opts (s/? (s/nilable ::spectomic/schema-options)))
         :ret ::spectomic/datomic-field-schema)
 
-(defmacro datomic-schema
-  ([specs] `(datomic-schema ~specs nil))
+(defn datascript-schema
+  ([specs] (datascript-schema specs nil))
   ([specs opts]
-   (datomic-schema* specs)))
-
-(defn datascript-schema*
-  ([specs] (datascript-schema* specs nil))
-  ([specs opts]
-   (let [s (datomic-schema* specs opts)]
+   (let [s (datomic-schema specs opts)]
      (reduce (fn [ds-schema schema]
                (assoc ds-schema
                  (:db/ident schema)
                  (dissoc schema :db/ident)))
              {} s))))
 
-(s/fdef datascript-schema*
+(s/fdef datascript-schema
         :args (s/cat :specs
                      (s/coll-of
                        (s/or :spec qualified-keyword?
                              :tuple (s/tuple qualified-keyword? ::spectomic/datascript-optional-field-schema)))
                      :opts (s/? (s/nilable ::spectomic/schema-options)))
         :ret ::spectomic/datascript-schema)
-
-(defmacro datascript-schema
-  ([specs] `(datascript-schema ~specs nil))
-  ([specs opts]
-   (datascript-schema* specs opts)))
-
