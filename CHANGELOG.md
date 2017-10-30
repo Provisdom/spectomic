@@ -1,5 +1,10 @@
 # Change Log
 
+## [0.6.1] - 2017-10-30
+### Fixed
+- Leftover reader conditional causing tests to fail.
+- Move org.clojure/spec.alpha back to 0.1.123.
+
 ## [0.6.0] - 2017-10-30
 ### Breaking
 - Made `core.cljc` and `specs.cljc` `.clj` files instead of `.cljc`. 

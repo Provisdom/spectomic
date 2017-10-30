@@ -1,5 +1,5 @@
 (def project 'provisdom/spectomic)
-(def version "0.6.0")
+(def version "0.6.1")
 
 (set-env! :resource-paths #{"src"}
           :source-paths #{"test"}
@@ -8,7 +8,7 @@
                           [org.clojure/test.check "0.9.0" :scope "test"]
 
                           [org.clojure/clojure "1.9.0-beta3" :scope "provided"]
-                          [org.clojure/spec.alpha "0.1.143"]])
+                          [org.clojure/spec.alpha "0.1.123"]])
 
 (require '[adzerk.boot-test :refer [test]]
          '[adzerk.bootlaces :refer :all])
@@ -22,7 +22,8 @@
        :url         "http://example/FIXME"
        :scm         {:url "https://github.com/yourname/spectomic"}
        :license     {"Eclipse Public License"
-                     "http://www.eclipse.org/legal/epl-v10.html"}})
+                     "http://www.eclipse.org/legal/epl-v10.html"}}
+  test {:include #".*-test$"})
 
 (deftask dev-env
          []
