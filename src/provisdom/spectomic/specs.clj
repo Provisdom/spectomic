@@ -3,7 +3,8 @@
     [clojure.spec.alpha :as s]
     [clojure.spec.gen.alpha :as gen]
     [clojure.string :as str]
-    [clojure.spec.alpha :as s]))
+    [clojure.spec.alpha :as s])
+  (:import (datomic.db DbId)))
 
 
 (def datomic-value-types
@@ -13,7 +14,7 @@
 (s/def ::tempid
   (s/with-gen
     (s/or
-      #?@(:clj [:dbid #(instance? (Class/forName "datomic.db.DbId") %)])
+      :dbid #(instance? DbId %)
       :string (s/and string? #(not (str/starts-with? % ":"))))
     (fn [] (gen/return ((resolve 'datomic.api/tempid) :db.part/db)))))
 
