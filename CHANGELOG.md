@@ -1,5 +1,9 @@
 # Change Log
 
+## [0.6.0] - 2017-10-30
+### Breaking
+- Made `core.cljc` and `specs.cljc` `.clj` files instead of `.cljc`. 
+
 ## [0.5.0] - 2017-08-30
 ### Breaking
 - Removed `datomic-schema` and `datascript-schema` macros.
