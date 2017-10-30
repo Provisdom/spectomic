@@ -48,7 +48,7 @@
 (s/def ::myobject (s/with-gen #(instance? MyObject %)
                               #(gen/return (MyObject.))))
 
-(deftest datomic-schema*-test
+(deftest datomic-schema-test
   (are [schema specs] (= schema (spectomic/datomic-schema specs))
     ;; basic Datomic types
     [{:db/ident       ::string
@@ -112,7 +112,7 @@
   (are [spec] (thrown? clojure.lang.ExceptionInfo (spectomic/datomic-schema [spec]))
     ::nil ::or ::or-coll ::coll-of-coll ::myobject))
 
-(deftest datascript-schema*-test
+(deftest datascript-schema-test
   (are [schema specs] (= schema (spectomic/datascript-schema specs))
     {::double  {:db/valueType :db.type/double :db/cardinality :db.cardinality/one}
      ::inst    {:db/valueType :db.type/instant :db/cardinality :db.cardinality/one}
@@ -130,14 +130,14 @@
 
 (defmulti foo :foo)
 (s/def ::foo (s/multi-spec foo :foo))
-(deftest datomic-schema*-valueType-test
+(deftest datomic-schema-valueType-test
   (are [schema specs] (= schema (spectomic/datomic-schema specs))
     [{:db/ident       ::string
       :db/valueType   :db.type/keyword
       :db/cardinality :db.cardinality/one}]
     [[::string {:db/valueType :db.type/keyword :db/cardinality :db.cardinality/one}]]))
 
-(deftest datascript-schema*-valueType-test
+(deftest datascript-schema-valueType-test
   (are [schema specs] (= schema (spectomic/datascript-schema specs))
     {::string {:db/valueType :db.type/keyword :db/cardinality :db.cardinality/one}}
     [[::string {:db/valueType :db.type/keyword :db/cardinality :db.cardinality/one}]]))
