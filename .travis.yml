@@ -14,7 +14,7 @@ script: boot test
 
 env:
   matrix:
-    - BOOT_CLOJURE_VERSION=1.9.0-alpha17
+    - BOOT_CLOJURE_VERSION=1.9.0-beta3
 
 cache:
   directories:
