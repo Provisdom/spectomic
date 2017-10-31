@@ -1,10 +1,12 @@
 (ns provisdom.spectomic.core-test
   (:require
-    [clojure.test :refer :all]
-    [clojure.spec.alpha :as s]
-    [clojure.spec.gen.alpha :as gen]
-    [clojure.spec.test.alpha :as st]
-    [provisdom.spectomic.core :as spectomic]))
+   [clojure.test :refer :all]
+   [clojure.spec.alpha :as s]
+   [clojure.spec.gen.alpha :as gen]
+   [clojure.spec.test.alpha :as st]
+   [datomic.api :as d]
+   [datascript.core :as ds]
+   [provisdom.spectomic.core :as spectomic]))
 
 (st/instrument)
 
@@ -46,7 +48,7 @@
 (s/def ::coll-of-coll (s/coll-of (s/coll-of string?)))
 (defrecord MyObject [])
 (s/def ::myobject (s/with-gen #(instance? MyObject %)
-                              #(gen/return (MyObject.))))
+                    #(gen/return (MyObject.))))
 
 (deftest datomic-schema-test
   (are [schema specs] (= schema (spectomic/datomic-schema specs))
@@ -132,11 +134,29 @@
      ::bigdec ::bigint ::uri ::keyword ::bytes ::int-coll
      ::map]))
 
-(defmulti foo :foo)
-(s/def ::foo (s/multi-spec foo :foo))
 (deftest datomic-schema-valueType-test
   (are [schema specs] (= schema (spectomic/datomic-schema specs))
     [{:db/ident       ::string
       :db/valueType   :db.type/keyword
       :db/cardinality :db.cardinality/one}]
     [[::string {:db/valueType :db.type/keyword :db/cardinality :db.cardinality/one}]]))
+
+(def test-schema-specs
+  [::string ::int ::inst ::double ::float ::uuid
+   ::bigdec ::bigint ::uri ::keyword ::bytes
+   ::map ::nilable-map
+   ::int-coll ::nilable-int-coll
+   [::int {:db/index true :db/unique :db.unique/identity}]])
+
+(deftest datomic-schema-transaction-test
+  (let [db-uri "datomic:mem://test"
+        _ (d/create-database db-uri)
+        conn (d/connect db-uri)
+        schema (spectomic/datomic-schema test-schema-specs)]
+    (testing "able to transact Spectomic generated schema to Datomic"
+      (is @(d/transact conn schema)))))
+
+(deftest datascript-schema-transaction-test
+  (let [schema (spectomic/datascript-schema test-schema-specs)]
+    (testing "able to transact Spectomic generated schema to DataScript"
+      (is (ds/create-conn schema)))))

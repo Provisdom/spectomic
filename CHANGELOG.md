@@ -1,5 +1,12 @@
 # Change Log
 
+## [0.7.0] - 2017-10-31
+### Breaking
+- Removed `:db/valueType` from DataScript schema except when it is `:db.type/ref`.
+### Added
+- Ensure generated schema can be transacted into Datomic and DataScript.
+- Datomic free and DataScript as test level dependencies.
+
 ## [0.6.1] - 2017-10-30
 ### Fixed
 - Leftover reader conditional causing tests to fail.
