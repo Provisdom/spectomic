@@ -114,19 +114,23 @@
 
 (deftest datascript-schema-test
   (are [schema specs] (= schema (spectomic/datascript-schema specs))
-    {::double  {:db/valueType :db.type/double :db/cardinality :db.cardinality/one}
-     ::inst    {:db/valueType :db.type/instant :db/cardinality :db.cardinality/one}
-     ::int     {:db/valueType :db.type/long :db/cardinality :db.cardinality/one}
-     ::bigint  {:db/valueType :db.type/bigint :db/cardinality :db.cardinality/one}
-     ::float   {:db/valueType :db.type/float :db/cardinality :db.cardinality/one}
-     ::string  {:db/valueType :db.type/string :db/cardinality :db.cardinality/one}
-     ::keyword {:db/valueType :db.type/keyword :db/cardinality :db.cardinality/one}
-     ::bigdec  {:db/valueType :db.type/bigdec :db/cardinality :db.cardinality/one}
-     ::bytes   {:db/valueType :db.type/bytes :db/cardinality :db.cardinality/one}
-     ::uri     {:db/valueType :db.type/uri :db/cardinality :db.cardinality/one}
-     ::uuid    {:db/valueType :db.type/uuid :db/cardinality :db.cardinality/one}}
+    {::double   {:db/cardinality :db.cardinality/one}
+     ::inst     {:db/cardinality :db.cardinality/one}
+     ::int      {:db/cardinality :db.cardinality/one}
+     ::bigint   {:db/cardinality :db.cardinality/one}
+     ::float    {:db/cardinality :db.cardinality/one}
+     ::string   {:db/cardinality :db.cardinality/one}
+     ::keyword  {:db/cardinality :db.cardinality/one}
+     ::bigdec   {:db/cardinality :db.cardinality/one}
+     ::bytes    {:db/cardinality :db.cardinality/one}
+     ::uri      {:db/cardinality :db.cardinality/one}
+     ::uuid     {:db/cardinality :db.cardinality/one}
+     ::int-coll {:db/cardinality :db.cardinality/many}
+     ::map      {:db/cardinality :db.cardinality/one
+                 :db/valueType   :db.type/ref}}
     [::string ::int ::inst ::double ::float ::uuid
-     ::bigdec ::bigint ::uri ::keyword ::bytes]))
+     ::bigdec ::bigint ::uri ::keyword ::bytes ::int-coll
+     ::map]))
 
 (defmulti foo :foo)
 (s/def ::foo (s/multi-spec foo :foo))
@@ -135,9 +139,4 @@
     [{:db/ident       ::string
       :db/valueType   :db.type/keyword
       :db/cardinality :db.cardinality/one}]
-    [[::string {:db/valueType :db.type/keyword :db/cardinality :db.cardinality/one}]]))
-
-(deftest datascript-schema-valueType-test
-  (are [schema specs] (= schema (spectomic/datascript-schema specs))
-    {::string {:db/valueType :db.type/keyword :db/cardinality :db.cardinality/one}}
     [[::string {:db/valueType :db.type/keyword :db/cardinality :db.cardinality/one}]]))

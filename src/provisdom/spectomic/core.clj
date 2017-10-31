@@ -123,7 +123,11 @@
      (reduce (fn [ds-schema schema]
                (assoc ds-schema
                  (:db/ident schema)
-                 (dissoc schema :db/ident)))
+                 ;; only include :db/valueType when it is a ref.
+                 (let [schema (select-keys schema [:db/cardinality :db/valueType])]
+                   (if (= :db.type/ref (:db/valueType schema))
+                     schema
+                     (dissoc schema :db/valueType)))))
              {} s))))
 
 (s/fdef datascript-schema
