@@ -23,7 +23,7 @@
     #(gen/fmap float
                (s/gen (s/double-in :min Float/MIN_VALUE :max Float/MAX_VALUE :infinite? false :NaN? false)))))
 (s/def ::uuid uuid?)
-(s/def ::bigdec bigdec?)
+(s/def ::bigdec decimal?)
 (s/def ::bigint (s/with-gen
                   #(instance? java.math.BigInteger %)
                   (fn []

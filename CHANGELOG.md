@@ -1,5 +1,11 @@
 # Change Log
 
+## [0.7.1] - 2017-10-31
+### Fixed
+- Compatibility with Clojure 1.9.0-beta4 by using `decimal?` instead of `bigdec?`.
+### Changed
+- Updated to `[org.clojure/spec.alpha "0.1.143"]`.
+
 ## [0.7.0] - 2017-10-31
 ### Breaking
 - Removed `:db/valueType` from DataScript schema except when it is `:db.type/ref`.
