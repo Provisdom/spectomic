@@ -132,7 +132,11 @@
                  :db/valueType   :db.type/ref}}
     [::string ::int ::inst ::double ::float ::uuid
      ::bigdec ::bigint ::uri ::keyword ::bytes ::int-coll
-     ::map]))
+     ::map]
+    {::int {:db/cardinality :db.cardinality/one
+            :db/unique :db.unique/identity}}
+    [[::int {:db/index true
+             :db/unique :db.unique/identity}]]))
 
 (deftest datomic-schema-valueType-test
   (are [schema specs] (= schema (spectomic/datomic-schema specs))

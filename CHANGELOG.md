@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.7.2 - 2017-11-01
+### Fixed
+- The `datascript-schema` function was incorrectly dropping the `:db/identity` values from maps.
+
 ## [0.7.1] - 2017-10-31
 ### Fixed
 - Compatibility with Clojure 1.9.0-beta4 by using `decimal?` instead of `bigdec?`.
