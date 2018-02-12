@@ -123,7 +123,7 @@
      (reduce (fn [ds-schema schema]
                (assoc ds-schema
                  (:db/ident schema)
-                 (let [schema (select-keys schema [:db/cardinality :db/unique :db/valueType])]
+                 (let [schema (select-keys schema [:db/cardinality :db/unique :db/valueType :db/isComponent])]
                    ;; only include :db/valueType when it is a ref.
                    (if (= :db.type/ref (:db/valueType schema))
                      schema

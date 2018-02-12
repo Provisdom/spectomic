@@ -52,7 +52,7 @@
 
 (deftest datomic-schema-test
   (are [schema specs] (= schema (spectomic/datomic-schema specs))
-    ;; basic Datomic types
+                      ;; basic Datomic types
     [{:db/ident       ::string
       :db/valueType   :db.type/string
       :db/cardinality :db.cardinality/one}
@@ -88,7 +88,7 @@
       :db/cardinality :db.cardinality/one}]
     [::string ::int ::inst ::double ::float ::uuid
      ::bigdec ::bigint ::uri ::keyword ::bytes]
-    ;; :db.type/ref
+                      ;; :db.type/ref
     [{:db/ident       ::map
       :db/valueType   :db.type/ref
       :db/cardinality :db.cardinality/one}
@@ -96,7 +96,7 @@
       :db/valueType   :db.type/ref
       :db/cardinality :db.cardinality/one}]
     [::map ::nilable-map]
-    ;; :db.cardinality/many
+                      ;; :db.cardinality/many
     [{:db/ident       ::int-coll
       :db/valueType   :db.type/long
       :db/cardinality :db.cardinality/many}
@@ -104,7 +104,7 @@
       :db/valueType   :db.type/long
       :db/cardinality :db.cardinality/many}]
     [::int-coll ::nilable-int-coll]
-    ;; extra schema attrs
+                      ;; extra schema attrs
     [{:db/ident       ::int
       :db/valueType   :db.type/long
       :db/cardinality :db.cardinality/one
@@ -134,9 +134,11 @@
      ::bigdec ::bigint ::uri ::keyword ::bytes ::int-coll
      ::map]
     {::int {:db/cardinality :db.cardinality/one
-            :db/unique :db.unique/identity}}
-    [[::int {:db/index true
-             :db/unique :db.unique/identity}]]))
+            :db/unique      :db.unique/identity
+            :db/isComponent true}}
+    [[::int {:db/index       true
+             :db/unique      :db.unique/identity
+             :db/isComponent true}]]))
 
 (deftest datomic-schema-valueType-test
   (are [schema specs] (= schema (spectomic/datomic-schema specs))
