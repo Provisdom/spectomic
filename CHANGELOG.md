@@ -1,6 +1,10 @@
 # Change Log
 
-## 0.7.2 - 2017-11-01
+## [0.7.3] - 2018-02-12
+### Fixed
+- Include `:db/isComponent` in DataScript schema.
+
+## [0.7.2] - 2017-11-01
 ### Fixed
 - The `datascript-schema` function was incorrectly dropping the `:db/identity` values from maps.
 
