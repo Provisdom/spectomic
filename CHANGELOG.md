@@ -1,5 +1,10 @@
 # Change Log
 
+## [0.7.4] - 2018-03-21
+### Added
+- Decrease schema generation time for some collections and maps by setting the 
+  type based on the Spec form.
+
 ## [0.7.3] - 2018-02-12
 ### Fixed
 - Include `:db/isComponent` in DataScript schema.

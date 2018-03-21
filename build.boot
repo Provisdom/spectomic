@@ -1,5 +1,5 @@
 (def project 'provisdom/spectomic)
-(def version "0.7.3")
+(def version "0.7.4")
 
 (set-env! :resource-paths #{"src"}
           :source-paths #{"test"}
@@ -7,9 +7,9 @@
                           [adzerk/bootlaces "0.1.13" :scope "test"]
                           [org.clojure/test.check "0.9.0" :scope "test"]
                           [com.datomic/datomic-free "0.9.5561.62" :scope "test"]
-                          [datascript "0.16.2" :scope "test"]
+                          [datascript "0.16.4" :scope "test"]
 
-                          [org.clojure/clojure "1.9.0-beta4" :scope "provided"]
+                          [org.clojure/clojure "1.9.0" :scope "provided"]
                           [org.clojure/spec.alpha "0.1.143"]])
 
 (require '[adzerk.boot-test :refer [test]]

@@ -1,12 +1,12 @@
 (ns provisdom.spectomic.core-test
   (:require
-   [clojure.test :refer :all]
-   [clojure.spec.alpha :as s]
-   [clojure.spec.gen.alpha :as gen]
-   [clojure.spec.test.alpha :as st]
-   [datomic.api :as d]
-   [datascript.core :as ds]
-   [provisdom.spectomic.core :as spectomic]))
+    [clojure.test :refer :all]
+    [clojure.spec.alpha :as s]
+    [clojure.spec.gen.alpha :as gen]
+    [clojure.spec.test.alpha :as st]
+    [datomic.api :as d]
+    [datascript.core :as ds]
+    [provisdom.spectomic.core :as spectomic]))
 
 (st/instrument)
 
@@ -39,7 +39,12 @@
 (s/def ::nilable-int-coll (s/coll-of ::nilable-int))
 
 (s/def ::map (s/keys :req [::int ::string]))
+(s/def ::map2 (s/keys :req [::keyword]))
+(s/def ::merged-map (s/merge ::map ::map2))
 (s/def ::nilable-map (s/nilable ::map))
+(s/def ::nilable-map-verbose (s/nilable (s/keys :req [::int ::string])))
+(s/def ::nilable-map-coll (s/coll-of ::nilable-map))
+(s/def ::nilable-map-coll-verbose (s/coll-of (s/nilable (s/keys :req [::int]))))
 
 ;; these specs will fail schema generation
 (s/def ::nil nil?)
@@ -50,9 +55,28 @@
 (s/def ::myobject (s/with-gen #(instance? MyObject %)
                     #(gen/return (MyObject.))))
 
+(deftest find-type-via-form-test
+  (let [ref-one {:db/valueType   :db.type/ref
+                 :db/cardinality :db.cardinality/one}
+        ref-many {:db/valueType   :db.type/ref
+                  :db/cardinality :db.cardinality/many}]
+    (is (= ref-one (spectomic/find-type-via-form ::map)))
+    (is (= ref-one (spectomic/find-type-via-form ::merged-map)))
+    (is (= ref-one (spectomic/find-type-via-form ::nilable-map)))
+    (is (= ref-one (spectomic/find-type-via-form ::nilable-map-verbose)))
+    (is (= ref-many (spectomic/find-type-via-form ::nilable-map-coll)))
+    (is (= ref-many (spectomic/find-type-via-form ::nilable-map-coll-verbose)))
+    (is (nil? (spectomic/find-type-via-form ::keyword)))
+    (is (nil? (spectomic/find-type-via-form ::coll-of-coll)))))
+
+(deftest find-type-via-generation-test
+  (is (= {:db/valueType   :db.type/ref
+          :db/cardinality :db.cardinality/one}
+         (spectomic/find-type-via-generation ::map nil))))
+
 (deftest datomic-schema-test
   (are [schema specs] (= schema (spectomic/datomic-schema specs))
-                      ;; basic Datomic types
+    ;; basic Datomic types
     [{:db/ident       ::string
       :db/valueType   :db.type/string
       :db/cardinality :db.cardinality/one}
@@ -88,7 +112,7 @@
       :db/cardinality :db.cardinality/one}]
     [::string ::int ::inst ::double ::float ::uuid
      ::bigdec ::bigint ::uri ::keyword ::bytes]
-                      ;; :db.type/ref
+    ;; :db.type/ref
     [{:db/ident       ::map
       :db/valueType   :db.type/ref
       :db/cardinality :db.cardinality/one}
@@ -96,7 +120,7 @@
       :db/valueType   :db.type/ref
       :db/cardinality :db.cardinality/one}]
     [::map ::nilable-map]
-                      ;; :db.cardinality/many
+    ;; :db.cardinality/many
     [{:db/ident       ::int-coll
       :db/valueType   :db.type/long
       :db/cardinality :db.cardinality/many}
@@ -104,7 +128,7 @@
       :db/valueType   :db.type/long
       :db/cardinality :db.cardinality/many}]
     [::int-coll ::nilable-int-coll]
-                      ;; extra schema attrs
+    ;; extra schema attrs
     [{:db/ident       ::int
       :db/valueType   :db.type/long
       :db/cardinality :db.cardinality/one
