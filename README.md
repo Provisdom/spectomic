@@ -212,6 +212,10 @@ then we need to verify that for each sample, every element in the collection is
 of the same type. If that is true then we return a map with `:db.cardinality/many`
 and the `:db/valueType` set to the type of object the collection contains. 
 
+Because generating samples for specs can end up taking a significant amount of 
+time, we do some Spec form parsing up front to try and determine the Datomic
+type. If the Spec form is not handled then we fall back on generation.
+
 ## License
 
 Copyright © 2017 Provisdom
