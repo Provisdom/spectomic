@@ -75,66 +75,68 @@
          (spectomic/find-type-via-generation ::map nil))))
 
 (deftest datomic-schema-test
-  (are [schema specs] (= schema (spectomic/datomic-schema specs))
-    ;; basic Datomic types
-    [{:db/ident       ::string
-      :db/valueType   :db.type/string
-      :db/cardinality :db.cardinality/one}
-     {:db/ident       ::int
-      :db/valueType   :db.type/long
-      :db/cardinality :db.cardinality/one}
-     {:db/ident       ::inst
-      :db/valueType   :db.type/instant
-      :db/cardinality :db.cardinality/one}
-     {:db/ident       ::double
-      :db/valueType   :db.type/double
-      :db/cardinality :db.cardinality/one}
-     {:db/ident       ::float
-      :db/valueType   :db.type/float
-      :db/cardinality :db.cardinality/one}
-     {:db/ident       ::uuid
-      :db/valueType   :db.type/uuid
-      :db/cardinality :db.cardinality/one}
-     {:db/ident       ::bigdec
-      :db/valueType   :db.type/bigdec
-      :db/cardinality :db.cardinality/one}
-     {:db/ident       ::bigint
-      :db/valueType   :db.type/bigint
-      :db/cardinality :db.cardinality/one}
-     {:db/ident       ::uri
-      :db/valueType   :db.type/uri
-      :db/cardinality :db.cardinality/one}
-     {:db/ident       ::keyword
-      :db/valueType   :db.type/keyword
-      :db/cardinality :db.cardinality/one}
-     {:db/ident       ::bytes
-      :db/valueType   :db.type/bytes
-      :db/cardinality :db.cardinality/one}]
-    [::string ::int ::inst ::double ::float ::uuid
-     ::bigdec ::bigint ::uri ::keyword ::bytes]
-    ;; :db.type/ref
-    [{:db/ident       ::map
-      :db/valueType   :db.type/ref
-      :db/cardinality :db.cardinality/one}
-     {:db/ident       ::nilable-map
-      :db/valueType   :db.type/ref
-      :db/cardinality :db.cardinality/one}]
-    [::map ::nilable-map]
-    ;; :db.cardinality/many
-    [{:db/ident       ::int-coll
-      :db/valueType   :db.type/long
-      :db/cardinality :db.cardinality/many}
-     {:db/ident       ::nilable-int-coll
-      :db/valueType   :db.type/long
-      :db/cardinality :db.cardinality/many}]
-    [::int-coll ::nilable-int-coll]
-    ;; extra schema attrs
-    [{:db/ident       ::int
-      :db/valueType   :db.type/long
-      :db/cardinality :db.cardinality/one
-      :db/index       true
-      :db/unique      :db.unique/identity}]
-    [[::int {:db/index true :db/unique :db.unique/identity}]])
+  (testing "basic datomic types"
+    (is (= [{:db/ident       ::string
+            :db/valueType   :db.type/string
+            :db/cardinality :db.cardinality/one}
+           {:db/ident       ::int
+            :db/valueType   :db.type/long
+            :db/cardinality :db.cardinality/one}
+           {:db/ident       ::inst
+            :db/valueType   :db.type/instant
+            :db/cardinality :db.cardinality/one}
+           {:db/ident       ::double
+            :db/valueType   :db.type/double
+            :db/cardinality :db.cardinality/one}
+           {:db/ident       ::float
+            :db/valueType   :db.type/float
+            :db/cardinality :db.cardinality/one}
+           {:db/ident       ::uuid
+            :db/valueType   :db.type/uuid
+            :db/cardinality :db.cardinality/one}
+           {:db/ident       ::bigdec
+            :db/valueType   :db.type/bigdec
+            :db/cardinality :db.cardinality/one}
+           {:db/ident       ::bigint
+            :db/valueType   :db.type/bigint
+            :db/cardinality :db.cardinality/one}
+           {:db/ident       ::uri
+            :db/valueType   :db.type/uri
+            :db/cardinality :db.cardinality/one}
+           {:db/ident       ::keyword
+            :db/valueType   :db.type/keyword
+            :db/cardinality :db.cardinality/one}
+           {:db/ident       ::bytes
+            :db/valueType   :db.type/bytes
+            :db/cardinality :db.cardinality/one}]
+          (spectomic/datomic-schema [::string ::int ::inst ::double ::float ::uuid
+                                     ::bigdec ::bigint ::uri ::keyword ::bytes]))))
+  (testing ":db.type/ref"
+    (is (= [{:db/ident       ::map
+             :db/valueType   :db.type/ref
+             :db/cardinality :db.cardinality/one}
+            {:db/ident       ::nilable-map
+             :db/valueType   :db.type/ref
+             :db/cardinality :db.cardinality/one}]
+           (spectomic/datomic-schema [::map ::nilable-map]))))
+
+  (testing ":db.cardinality/many"
+    (is (= [{:db/ident       ::int-coll
+             :db/valueType   :db.type/long
+             :db/cardinality :db.cardinality/many}
+            {:db/ident       ::nilable-int-coll
+             :db/valueType   :db.type/long
+             :db/cardinality :db.cardinality/many}]
+           (spectomic/datomic-schema [::int-coll ::nilable-int-coll]))))
+
+  (testing "extra schema attrs"
+    (is (= [{:db/ident       ::int
+             :db/valueType   :db.type/long
+             :db/cardinality :db.cardinality/one
+             :db/index       true
+             :db/unique      :db.unique/identity}]
+           (spectomic/datomic-schema [[::int {:db/index true :db/unique :db.unique/identity}]]))))
+
   (are [spec] (thrown? clojure.lang.ExceptionInfo (spectomic/datomic-schema [spec]))
     ::nil ::or ::or-coll ::coll-of-coll ::myobject))
 
@@ -165,11 +167,11 @@
              :db/isComponent true}]]))
 
 (deftest datomic-schema-valueType-test
-  (are [schema specs] (= schema (spectomic/datomic-schema specs))
-    [{:db/ident       ::string
-      :db/valueType   :db.type/keyword
-      :db/cardinality :db.cardinality/one}]
-    [[::string {:db/valueType :db.type/keyword :db/cardinality :db.cardinality/one}]]))
+  (is (= [{:db/ident       ::string
+           :db/valueType   :db.type/keyword
+           :db/cardinality :db.cardinality/one}]
+         (spectomic/datomic-schema
+           [[::string {:db/valueType :db.type/keyword :db/cardinality :db.cardinality/one}]]))))
 
 (def test-schema-specs
   [::string ::int ::inst ::double ::float ::uuid
