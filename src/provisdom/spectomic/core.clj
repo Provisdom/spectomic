@@ -91,6 +91,8 @@
                              :db/cardinality :db.cardinality/one}
           :else (throw (ex-info "Invalid Datomic type." {:spec spec :type t})))))))
 
+(declare spec->datomic-schema)
+
 (defn find-type-via-form
   ([spec] (find-type-via-form spec nil))
   ([spec custom-type-resolver]
@@ -100,14 +102,17 @@
          (clojure.spec.alpha/keys clojure.spec.alpha/merge)
          {:db/valueType   :db.type/ref
           :db/cardinality :db.cardinality/one}
+
          (clojure.spec.alpha/coll-of
            clojure.spec.alpha/every)
          (let [inner-type (find-type-via-generation (eval (second form)) custom-type-resolver)]
            (when (= :db.cardinality/one (:db/cardinality inner-type))
              {:db/cardinality :db.cardinality/many
               :db/valueType   (:db/valueType inner-type)}))
+
          clojure.spec.alpha/nilable
-         (find-type-via-form (second form))
+         (spec->datomic-schema (second form))
+
          nil)))))
 
 (defn- spec->datomic-schema

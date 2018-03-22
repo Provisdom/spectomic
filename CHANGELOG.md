@@ -1,5 +1,10 @@
 # Change Log
 
+## [0.7.5] - 2018-03-21
+### Added
+- Call `spec->datomic-schema` within `find-type-via-form` to further increase
+  performance.
+
 ## [0.7.4] - 2018-03-21
 ### Added
 - Decrease schema generation time for some collections and maps by setting the 
