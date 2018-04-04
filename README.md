@@ -58,7 +58,8 @@ represents. Now let's look at a more complicated example.
 (spectomic/datomic-schema [[:entity/id {:db/unique :db.unique/identity
                                         :db/index  true}]
                            :user/name
-                           :user/favorite-foods])
+                           :user/favorite-foods
+                           :user/orders])
 => [{:db/ident       :entity/id
      :db/valueType   :db.type/uuid
      :db/cardinality :db.cardinality/one
