@@ -192,3 +192,20 @@
   (let [schema (spectomic/datascript-schema test-schema-specs)]
     (testing "able to transact Spectomic generated schema to DataScript"
       (is (ds/create-conn schema)))))
+
+
+(s/def :book/name string?)
+(s/def :book/description string?)
+(s/def ::book (s/keys :req [:book/name] :opt [:book/description]))
+
+(deftest datomic-schema-composite-spec-test
+  (let [expected-output [{:db/valueType :db.type/string
+                          :db/cardinality :db.cardinality/one
+                          :db/ident :book/name
+                          :db/index true}
+                         {:db/ident       :book/description
+                          :db/valueType   :db.type/string
+                          :db/cardinality :db.cardinality/one}]
+        actual-output (spectomic/datomic-schema (spectomic/with-map-keys ::book {:book/name {:db/index true}}))]
+  (is (= actual-output expected-output))))
+

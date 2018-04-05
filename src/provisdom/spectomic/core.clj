@@ -133,6 +133,48 @@
           :att [s {}]
           :att-and-schema s)))))
 
+(defn- gen-spec-symbol
+  [fn-name]
+  (symbol (str "clojure.spec.alpha/" fn-name)))
+
+(defn merge-opt-keys
+ "Merges optional keys into requried keys using a spec's form/description"
+ [fspec]
+ (let [keymap (atom (into {} (map (fn [pair] (vec pair)) (partition 2 (rest fspec)))))]
+   (cond
+     (contains? @keymap :opt)
+       (swap! keymap assoc :req (vec (concat (@keymap :req) (@keymap :opt))))
+     (contains? @keymap :opt-un)
+       (swap! keymap assoc :req-un (vec (concat (@keymap :req-un) (@keymap :opt-un)))))
+   (swap! keymap dissoc :opt :opt-un)
+   (cons (gen-spec-symbol "keys") (mapcat identity @keymap)))))     
+
+(defn regenerate-spec
+  "Regenerates a spec with its optional keys merged into required keys"
+  [spec]
+  (let [fspec (s/form spec)
+        spec-sym (gen-spec-symbol "keys")]
+    (if (coll? fspec)
+      (if (= (first fspec) spec-sym)
+        (merge-opt-keys fspec)
+        (map
+          (fn [x]
+            (if (coll? x)
+              (if (= (first x) spec-sym)
+                (merge-opt-keys x)
+                x)
+              x))
+          fspec))
+      fspec)))
+
+(defn with-map-keys
+  "Extract out all the keys of composite specs and merge with the provided `schema-override-map`"
+  ([spec] (keys (sgen/generate (s/gen (eval (regenerate-spec spec))))))
+  ([spec schema-override-map]
+    (map
+      (fn [s] (if (contains? schema-override-map s) [s (schema-override-map s)] s))
+      (keys (sgen/generate (s/gen (eval (regenerate-spec spec))))))))
+
 (defn datomic-schema
   ([specs] (datomic-schema specs nil))
   ([specs {:keys [custom-type-resolver]
@@ -175,3 +217,11 @@
                              :tuple (s/tuple qualified-keyword? ::spectomic/datascript-optional-field-schema)))
                      :opts (s/? (s/nilable ::spectomic/schema-options)))
         :ret ::spectomic/datascript-schema)
+
+(comment
+(defn- which-spec
+  []
+  (if (find-ns 'clojure.spec.alpha)
+    'clojure.spec.alpha
+    'clojure.spec)))
+
