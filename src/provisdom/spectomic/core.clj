@@ -105,13 +105,13 @@
 
          (clojure.spec.alpha/coll-of
            clojure.spec.alpha/every)
-         (let [inner-type (find-type-via-generation (eval (second form)) custom-type-resolver)]
+         (let [inner-type (spec->datomic-schema (eval (second form)) custom-type-resolver)]
            (when (= :db.cardinality/one (:db/cardinality inner-type))
              {:db/cardinality :db.cardinality/many
               :db/valueType   (:db/valueType inner-type)}))
 
          clojure.spec.alpha/nilable
-         (spec->datomic-schema (second form))
+         (spec->datomic-schema (eval (second form)))
 
          nil)))))
 
