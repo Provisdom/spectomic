@@ -1,5 +1,11 @@
 # Change Log
 
+## [0.7.6] - 2018-04-09
+### Added
+- Call `spec->datomic-schema` within the `(clojure.spec.alpha/coll-of 
+  clojure.spec.alpha/every)` case in `find-type-via-form` to further increase
+  performance.
+
 ## [0.7.5] - 2018-03-21
 ### Added
 - Call `spec->datomic-schema` within `find-type-via-form` to further increase

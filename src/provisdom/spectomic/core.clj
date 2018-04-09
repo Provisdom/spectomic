@@ -105,13 +105,13 @@
 
          (clojure.spec.alpha/coll-of
            clojure.spec.alpha/every)
-         (let [inner-type (find-type-via-generation (eval (second form)) custom-type-resolver)]
+         (let [inner-type (spec->datomic-schema (eval (second form)) custom-type-resolver)]
            (when (= :db.cardinality/one (:db/cardinality inner-type))
              {:db/cardinality :db.cardinality/many
               :db/valueType   (:db/valueType inner-type)}))
 
          clojure.spec.alpha/nilable
-         (spec->datomic-schema (second form))
+         (spec->datomic-schema (eval (second form)))
 
          nil)))))
 
@@ -147,7 +147,7 @@
      (contains? @keymap :opt-un)
        (swap! keymap assoc :req-un (vec (concat (@keymap :req-un) (@keymap :opt-un)))))
    (swap! keymap dissoc :opt :opt-un)
-   (cons (gen-spec-symbol "keys") (mapcat identity @keymap)))))     
+   (cons (gen-spec-symbol "keys") (mapcat identity @keymap))))
 
 (defn regenerate-spec
   "Regenerates a spec with its optional keys merged into required keys"
