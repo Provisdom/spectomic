@@ -1,5 +1,9 @@
 # Change Log
 
+## [0.7.7] - 2018-06-14
+### Added
+- Handle `s/and` in the form parser.
+
 ## [0.7.6] - 2018-04-09
 ### Added
 - Call `spec->datomic-schema` within the `(clojure.spec.alpha/coll-of 

@@ -1,5 +1,5 @@
 (def project 'provisdom/spectomic)
-(def version "0.7.6")
+(def version "0.7.7")
 
 (set-env! :resource-paths #{"src"}
           :source-paths #{"test"}
