@@ -8,7 +8,7 @@
                           [org.clojure/test.check "0.9.0" :scope "test"]
                           [com.datomic/datomic-free "0.9.5561.62" :scope "test"]
                           [datascript "0.16.4" :scope "test"]
-
+                          [tolitius/boot-check "0.1.9"]
                           [org.clojure/clojure "1.9.0" :scope "provided"]
                           [org.clojure/spec.alpha "0.1.143"]])
 
@@ -51,3 +51,11 @@
 (deftask deploy
          []
          (comp (build-jar) (push-release)))
+
+(require '[tolitius.boot-check :as check])
+
+(deftask check-sources []
+  (set-env! :source-paths #{"src" "test"})
+  (comp (check/with-kibit)))
+
+
