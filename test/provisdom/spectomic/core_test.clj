@@ -39,6 +39,10 @@
 (s/def ::nilable-int-coll (s/coll-of ::nilable-int))
 
 (s/def ::map (s/keys :req [::int ::string]))
+(s/def ::map-and (s/and map? ::map))
+(s/def ::map-and-keys (s/and map? (s/keys :req [::int])))
+(s/def ::map-and-two-types (s/and (s/keys :req [::int]) (s/coll-of int?)))
+(s/def ::map-coll-of-and (s/and ::nilable-map-coll sequential?))
 (s/def ::map2 (s/keys :req [::keyword]))
 (s/def ::merged-map (s/merge ::map ::map2))
 (s/def ::nilable-map (s/nilable ::map))
@@ -66,8 +70,14 @@
     (is (= ref-one (spectomic/find-type-via-form ::nilable-map-verbose)))
     (is (= ref-many (spectomic/find-type-via-form ::nilable-map-coll)))
     (is (= ref-many (spectomic/find-type-via-form ::nilable-map-coll-verbose)))
+    (is (= ref-one (spectomic/find-type-via-form `(s/and coll? ::map map?))))
+    (is (= ref-one (spectomic/find-type-via-form ::map-and)))
+    (is (= ref-one (spectomic/find-type-via-form ::map-and-keys)))
+    (is (= ref-many (spectomic/find-type-via-form ::map-coll-of-and)))
     (is (nil? (spectomic/find-type-via-form ::keyword)))
-    (is (nil? (spectomic/find-type-via-form ::coll-of-coll)))))
+    (is (nil? (spectomic/find-type-via-form ::coll-of-coll)))
+    (is (nil? (spectomic/find-type-via-form (fn []))))
+    (is (nil? (spectomic/find-type-via-form ::map-and-two-types)))))
 
 (deftest find-type-via-generation-test
   (is (= {:db/valueType   :db.type/ref

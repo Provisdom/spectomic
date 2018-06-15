@@ -110,6 +110,19 @@
              {:db/cardinality :db.cardinality/many
               :db/valueType   (:db/valueType inner-type)}))
 
+         clojure.spec.alpha/and
+         (let [inner-forms (rest form)
+               found-schemas (reduce (fn [schemas form]
+                                       (if-let [schema (find-type-via-form form)]
+                                         (conj schemas schema)
+                                         schemas))
+                                     [] inner-forms)]
+           ;; if we found multiple schemas this likely means that the Spec represents
+           ;; multiple types. We'll let the find-type-via-generation throw the exception.
+           (if (= 1 (count found-schemas))
+             (first found-schemas)
+             nil))
+
          clojure.spec.alpha/nilable
          (spec->datomic-schema (eval (second form)))
 
