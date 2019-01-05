@@ -1,6 +1,6 @@
 # Change Log
 
-## [0.7.8] - 2018-06-14
+## [0.7.8] - 2019-01-04
 ### Added
 - If :db/valueType is explicitly passed in the extra schema attributes, we should 
   force that value type and not throw any value type related exceptions. [#16](https://github.com/Provisdom/spectomic/pull/16)
