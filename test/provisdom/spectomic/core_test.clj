@@ -57,7 +57,7 @@
 (s/def ::coll-of-coll (s/coll-of (s/coll-of string?)))
 (defrecord MyObject [])
 (s/def ::myobject (s/with-gen #(instance? MyObject %)
-                    #(gen/return (MyObject.))))
+                              #(gen/return (MyObject.))))
 
 (deftest find-type-via-form-test
   (let [ref-one {:db/valueType   :db.type/ref
@@ -146,6 +146,19 @@
              :db/index       true
              :db/unique      :db.unique/identity}]
            (spectomic/datomic-schema [[::int {:db/index true :db/unique :db.unique/identity}]]))))
+
+  (testing "extra schema attrs still generates spec if only valueType is specified."
+    (is (= [{:db/ident       ::int
+             :db/valueType   :db.type/long
+             :db/cardinality :db.cardinality/one}]
+           (spectomic/datomic-schema [[::int {:db/valueType :db.type/long}]]))))
+
+  (testing "extra schema attrs skips generation if both valueType and cardinality are passed."
+    (is (= [{:db/ident       ::int
+             :db/valueType   :db.type/long
+             :db/cardinality :db.cardinality/one}]
+           (spectomic/datomic-schema [[::int {:db/valueType   :db.type/long
+                                              :db/cardinality :db.cardinality/one}]]))))
 
   (are [spec] (thrown? clojure.lang.ExceptionInfo (spectomic/datomic-schema [spec]))
     ::nil ::or ::or-coll ::coll-of-coll ::myobject))

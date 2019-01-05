@@ -55,8 +55,12 @@
     keyword-or-form))
 
 (defn find-type-via-generation
-  "Returns Datomic schema for `spec`."
-  [spec custom-type-resolver]
+  "Returns Datomic schema for `spec`. Takes a map of the following options:
+    :custom-type-resolver - A function that takes an object and returns the Datomic value type.
+    :value-type - Force the value type for a spec to be this type. This is useful
+                  for cases where your spec generates multiple types and your code
+                  will work with multiple types (i.e. long and double)."
+  [spec {:keys [custom-type-resolver value-type]}]
   (let [g (sgen/such-that (fn [s]
                             ;; we need a sample that is not nil
                             (and (some? s)
@@ -68,28 +72,35 @@
                           (s/gen spec))
         samples (binding [s/*recursion-limit* 1]
                   (sgen/sample ((resolve 'clojure.test.check.generators/resize) 10 g) 100))
-        types (sample-types samples custom-type-resolver)]
-    ;; Makes sure we are getting consistent types from the generator. If types are inconsistent then schema
-    ;; generation is unclear.
-    (cond
-      (> (count types) 1) (throw (ex-info "Spec resolves to multiple types." {:spec spec :types types}))
-      (empty? types) (throw (ex-info "No matching Datomic types." {:spec spec}))
-      :else
-      (let [t (first types)]
-        (cond
-          (= t ::cardinality-many) (let [collection-types (sample-types (mapcat identity samples) custom-type-resolver)]
-                                     (cond
-                                       (> (count collection-types) 1)
-                                       (throw (ex-info "Spec collection contains multiple types."
-                                                       {:spec spec :types collection-types}))
-                                       (= ::cardinality-many (first collection-types))
-                                       (throw (ex-info "Cannot create schema for a collection of collections."
-                                                       {:spec spec}))
-                                       :else {:db/valueType   (first collection-types)
-                                              :db/cardinality :db.cardinality/many}))
-          (datomic-type? t) {:db/valueType   t
-                             :db/cardinality :db.cardinality/one}
-          :else (throw (ex-info "Invalid Datomic type." {:spec spec :type t})))))))
+        types (sample-types samples custom-type-resolver)
+        cardinality-many? (= #{::cardinality-many} types)]
+    ;; if we already know the value type, we don't need to do anything else
+    (if value-type
+      {:db/valueType   value-type
+       :db/cardinality (if cardinality-many? :db.cardinality/many :db.cardinality/one)}
+
+      ;; Given we don't know the value type, this makes sure we are getting
+      ;; consistent types from the generator. If types are inconsistent then schema
+      ;; generation is unclear.
+      (cond
+        (> (count types) 1) (throw (ex-info "Spec resolves to multiple types." {:spec spec :types types}))
+        (empty? types) (throw (ex-info "No matching Datomic types." {:spec spec}))
+        :else
+        (let [t (first types)]
+          (cond
+            cardinality-many? (let [collection-types (sample-types (mapcat identity samples) custom-type-resolver)]
+                                (cond
+                                  (> (count collection-types) 1)
+                                  (throw (ex-info "Spec collection contains multiple types."
+                                                  {:spec spec :types collection-types}))
+                                  (= ::cardinality-many (first collection-types))
+                                  (throw (ex-info "Cannot create schema for a collection of collections."
+                                                  {:spec spec}))
+                                  :else {:db/valueType   (first collection-types)
+                                         :db/cardinality :db.cardinality/many}))
+            (datomic-type? t) {:db/valueType   t
+                               :db/cardinality :db.cardinality/one}
+            :else (throw (ex-info "Invalid Datomic type." {:spec spec :type t}))))))))
 
 (declare spec->datomic-schema)
 
@@ -105,7 +116,7 @@
 
          (clojure.spec.alpha/coll-of
            clojure.spec.alpha/every)
-         (let [inner-type (spec->datomic-schema (eval (second form)) custom-type-resolver)]
+         (let [inner-type (spec->datomic-schema (eval (second form)) {:custom-type-resolver custom-type-resolver})]
            (when (= :db.cardinality/one (:db/cardinality inner-type))
              {:db/cardinality :db.cardinality/many
               :db/valueType   (:db/valueType inner-type)}))
@@ -131,10 +142,10 @@
 (defn- spec->datomic-schema
   "Returns Datomic schema for `spec`."
   ([spec] (spec->datomic-schema spec nil))
-  ([spec custom-type-resolver]
+  ([spec lookup-opts]
    (if-let [t (find-type-via-form spec)]
      t
-     (find-type-via-generation spec custom-type-resolver))))
+     (find-type-via-generation spec lookup-opts))))
 
 (defn- spec-and-data
   [s]
@@ -152,11 +163,17 @@
            :or   {custom-type-resolver type}}]
    (into []
          (map (fn [s]
-                (let [[spec extra-schema] (spec-and-data s)]
-                  (merge
-                    (assoc (if (:db/valueType extra-schema) {} (spec->datomic-schema spec custom-type-resolver))
-                      :db/ident spec)
-                    extra-schema))))
+                (let [[spec extra-schema] (spec-and-data s)
+                      base-schema (if (and (:db/valueType extra-schema)
+                                           (:db/cardinality extra-schema))
+                                    ;; if the user explicitly specifies the type and cardinality,
+                                    ;; we can skip the call to spec->datomic-schema
+                                    {}
+                                    (spec->datomic-schema spec {:custom-type-resolver custom-type-resolver
+                                                                :value-type           (:db/valueType extra-schema)}))]
+                  (merge {:db/ident spec}
+                         base-schema
+                         extra-schema))))
          specs)))
 
 (s/fdef datomic-schema
