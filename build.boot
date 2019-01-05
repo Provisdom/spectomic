@@ -1,5 +1,5 @@
 (def project 'provisdom/spectomic)
-(def version "0.7.7")
+(def version "0.7.8")
 
 (set-env! :resource-paths #{"src"}
           :source-paths #{"test"}
@@ -20,9 +20,9 @@
 (task-options!
   pom {:project     project
        :version     version
-       :description "FIXME: write description"
-       :url         "http://example/FIXME"
-       :scm         {:url "https://github.com/yourname/spectomic"}
+       :description "Generate Datomic or Datascript schema from your Clojure(Script) specs"
+       :url         "https://github.com/Provisdom/spectomic"
+       :scm         {:url "https://github.com/Provisdom/spectomic"}
        :license     {"Eclipse Public License"
                      "http://www.eclipse.org/legal/epl-v10.html"}}
   test {:include #".*-test$"})
