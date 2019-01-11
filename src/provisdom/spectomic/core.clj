@@ -2,7 +2,8 @@
   (:require
     [clojure.spec.alpha :as s]
     [clojure.spec.gen.alpha :as sgen]
-    [provisdom.spectomic.specs :as spectomic]))
+    [provisdom.spectomic.specs :as spectomic])
+  (:import (clojure.lang ExceptionInfo)))
 
 ;; this could be a multimethod?
 (def ^:private class->datomic-type
@@ -60,7 +61,8 @@
     :value-type - Force the value type for a spec to be this type. This is useful
                   for cases where your spec generates multiple types and your code
                   will work with multiple types (i.e. long and double)."
-  [spec {:keys [custom-type-resolver value-type]}]
+  [spec {:keys [custom-type-resolver value-type gen-resize]
+         :or   {gen-resize 10}}]
   (let [g (sgen/such-that (fn [s]
                             ;; we need a sample that is not nil
                             (and (some? s)
@@ -71,7 +73,11 @@
                                    true)))
                           (s/gen spec))
         samples (binding [s/*recursion-limit* 1]
-                  (sgen/sample ((resolve 'clojure.test.check.generators/resize) 10 g) 100))
+                  (try
+                    (doall (sgen/sample ((resolve 'clojure.test.check.generators/resize) gen-resize g) 100))
+                    (catch ExceptionInfo ex
+                      (throw (ex-info (.getMessage ex) (merge (ex-data ex)
+                                                              {:spec spec}))))))
         types (sample-types samples custom-type-resolver)
         cardinality-many? (= #{::cardinality-many} types)]
     ;; if we already know the value type, we don't need to do anything else
