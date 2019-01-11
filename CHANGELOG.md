@@ -1,7 +1,12 @@
 # Change Log
 
-## [0.7.8] - 2019-01-04
+## [0.7.8] - 2019-01-10
 ### Added
+- Improve error handling when an exception occurs while sampling.
+- Allow `:gen-resize` to be passed as an option to `datomic-schema`.
+
+## [0.7.8] - 2019-01-04
+### Fixed
 - If :db/valueType is explicitly passed in the extra schema attributes, we should 
   force that value type and not throw any value type related exceptions. [#16](https://github.com/Provisdom/spectomic/pull/16)
 
