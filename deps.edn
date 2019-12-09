@@ -1,0 +1,12 @@
+{:paths   ["src"]
+ :deps    {}
+ :aliases {:test
+           {:extra-paths ["test"]
+            :extra-deps  {org.clojure/test.check   {:mvn/version "0.10.0"}
+                          lambdaisland/kaocha      {:mvn/version "0.0-554"}
+                          datascript               {:mvn/version "0.18.7"}
+                          com.datomic/datomic-free {:mvn/version "0.9.5697"}}}
+           :jar
+           {:extra-deps {pack/pack.alpha {:git/url "https://github.com/juxt/pack.alpha.git"
+                                          :sha     "60cdf0e75efc988b893eafe726ccdf0d5a5a6067"}}
+            :main-opts  ["-m" "mach.pack.alpha.skinny" "--no-libs" "-e" "extra" "--project-path" "spectomic.jar"]}}}

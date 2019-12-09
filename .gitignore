@@ -18,3 +18,5 @@ project.clj
 .nrepl-history
 .nrepl-port
 out
+.cpcache
+extra
