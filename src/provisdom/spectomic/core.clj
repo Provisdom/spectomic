@@ -163,6 +163,41 @@
           :att [s {}]
           :att-and-schema s)))))
 
+(defn merge-opt-keys
+ "Merges optional keys into requried keys (for specs which are created using `clojure.spec.alpha/keys`) using a spec's form/description"
+ [fspec]
+ (let [keymap (into {} (map (fn [pair] (vec pair)) (partition 2 (rest fspec))))]
+   (->> (cond-> {}
+          (contains? keymap :opt)
+            (assoc :req (into (keymap :req []) (keymap :opt)))
+          (contains? keymap :opt-un)
+            (assoc :req-un (into (keymap :req-un []) (keymap :opt-un))))
+        (mapcat identity)
+        (cons 'clojure.spec.alpha/keys))))
+
+(defn regenerate-spec
+  "Regenerates a spec with its optional keys merged into required keys (for specs which are created using `clojure.spec.alpha/keys`)"
+  [spec]
+  (let [fspec (s/form spec)
+        spec-keys-fn 'clojure.spec.alpha/keys]
+    (if (coll? fspec)
+      (if (= (first fspec) spec-keys-fn)
+        (merge-opt-keys fspec)
+        (map
+          (fn [elem]
+            (if (coll? elem)
+              (if (= (first elem) spec-keys-fn)
+                (merge-opt-keys elem)
+                elem)
+              elem))
+          fspec))
+      (throw (AssertionError. "Spec should be composite")))))
+
+(defn with-map-keys
+  "Extract out all the keys of composite spec"
+  [spec]
+  (keys (sgen/generate (s/gen (eval (regenerate-spec spec))))))
+
 (defn datomic-schema
   ([specs] (datomic-schema specs nil))
   ([specs {:keys [custom-type-resolver]
