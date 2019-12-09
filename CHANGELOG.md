@@ -1,9 +1,8 @@
 # Change Log
 
 ## [0.7.11] - 2019-12-09
-### Changed
-- Switched from Boot to deps.edn
-- Switching from Travis to CircleCI
+### Added
+- Added `datascript-schema-from-datomic-schema`
 
 ## [0.7.10] - 2019-12-09
 ### Changed
