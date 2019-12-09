@@ -183,12 +183,12 @@
          specs)))
 
 (s/fdef datomic-schema
-        :args (s/cat :specs
-                     (s/coll-of
-                       (s/or :spec qualified-keyword?
-                             :tuple (s/tuple qualified-keyword? ::spectomic/datomic-optional-field-schema)))
-                     :opts (s/? (s/nilable ::spectomic/schema-options)))
-        :ret ::spectomic/datomic-field-schema)
+  :args (s/cat :specs
+               (s/coll-of
+                 (s/or :spec qualified-keyword?
+                       :tuple (s/tuple qualified-keyword? ::spectomic/datomic-optional-field-schema)))
+               :opts (s/? (s/nilable ::spectomic/schema-options)))
+  :ret ::spectomic/datomic-field-schema)
 
 (defn datascript-schema
   ([specs] (datascript-schema specs nil))
@@ -205,9 +205,9 @@
              {} s))))
 
 (s/fdef datascript-schema
-        :args (s/cat :specs
-                     (s/coll-of
-                       (s/or :spec qualified-keyword?
-                             :tuple (s/tuple qualified-keyword? ::spectomic/datascript-optional-field-schema)))
-                     :opts (s/? (s/nilable ::spectomic/schema-options)))
-        :ret ::spectomic/datascript-schema)
+  :args (s/cat :specs
+               (s/coll-of
+                 (s/or :spec qualified-keyword?
+                       :tuple (s/tuple qualified-keyword? ::spectomic/datascript-optional-field-schema)))
+               :opts (s/? (s/nilable ::spectomic/schema-options)))
+  :ret ::spectomic/datascript-schema)
