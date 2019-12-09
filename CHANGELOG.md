@@ -1,6 +1,15 @@
 # Change Log
 
-## [0.7.8] - 2019-01-10
+## [0.7.11] - 2019-12-09
+### Added
+- Added `datascript-schema-from-datomic-schema`
+
+## [0.7.10] - 2019-12-09
+### Changed
+- Switched from Boot to deps.edn
+- Switching from Travis to CircleCI
+
+## [0.7.9] - 2019-01-10
 ### Added
 - Improve error handling when an exception occurs while sampling.
 - Allow `:gen-resize` to be passed as an option to `datomic-schema`.
