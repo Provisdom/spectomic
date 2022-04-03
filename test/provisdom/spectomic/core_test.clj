@@ -59,6 +59,18 @@
 (s/def ::myobject (s/with-gen #(instance? MyObject %)
                               #(gen/return (MyObject.))))
 
+(defn custom-resolver
+  [v]
+  (if (instance? java.time.LocalDate v)
+    :db.type/instant
+    (type v)))
+
+(s/def ::date (s/with-gen
+                #(instance? java.time.LocalDate %)
+                #(gen/return (java.time.LocalDate/ofEpochDay (rand-int 100000)))))
+
+(s/def ::date-coll (s/coll-of ::date))
+
 (deftest find-type-via-form-test
   (let [ref-one {:db/valueType   :db.type/ref
                  :db/cardinality :db.cardinality/one}
@@ -138,6 +150,16 @@
              :db/valueType   :db.type/long
              :db/cardinality :db.cardinality/many}]
            (spectomic/datomic-schema [::int-coll ::nilable-int-coll]))))
+
+  (testing "custom type resolvers"
+    (is (= [{:db/ident       ::date
+             :db/valueType   :db.type/instant
+             :db/cardinality :db.cardinality/one}
+            {:db/ident       ::date-coll
+             :db/valueType   :db.type/instant
+             :db/cardinality :db.cardinality/many}]
+           (spectomic/datomic-schema [::date ::date-coll]
+                                     {:custom-type-resolver custom-resolver}))))
 
   (testing "extra schema attrs"
     (is (= [{:db/ident       ::int

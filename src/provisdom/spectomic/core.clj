@@ -148,8 +148,8 @@
 (defn- spec->datomic-schema
   "Returns Datomic schema for `spec`."
   ([spec] (spec->datomic-schema spec nil))
-  ([spec lookup-opts]
-   (if-let [t (find-type-via-form spec)]
+  ([spec {:keys [custom-type-resolver] :as lookup-opts}]
+   (if-let [t (find-type-via-form spec custom-type-resolver)]
      t
      (find-type-via-generation spec lookup-opts))))
 
