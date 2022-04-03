@@ -2,11 +2,9 @@
  :deps    {}
  :aliases {:test
            {:extra-paths ["test"]
-            :extra-deps  {org.clojure/test.check   {:mvn/version "0.10.0"}
-                          lambdaisland/kaocha      {:mvn/version "0.0-554"}
-                          datascript               {:mvn/version "0.18.7"}
+            :extra-deps  {org.clojure/test.check   {:mvn/version "1.1.1"}
+                          lambdaisland/kaocha      {:mvn/version "1.64.1010"}
+                          datascript/datascript    {:mvn/version "1.3.12"}
                           com.datomic/datomic-free {:mvn/version "0.9.5697"}}}
-           :jar
-           {:extra-deps {pack/pack.alpha {:git/url "https://github.com/juxt/pack.alpha.git"
-                                          :sha     "60cdf0e75efc988b893eafe726ccdf0d5a5a6067"}}
-            :main-opts  ["-m" "mach.pack.alpha.skinny" "--no-libs" "-e" "extra" "--project-path" "spectomic.jar"]}}}
+           :build {:deps       {io.github.seancorfield/build-clj {:git/tag "v0.8.0" :git/sha "9bd8b8a"}}
+                   :ns-default build}}}
