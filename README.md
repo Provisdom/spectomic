@@ -7,7 +7,7 @@ Generate Datomic or Datascript schema from your Clojure(script) specs.
 
 [](dependency)
 ```clojure
-[provisdom/spectomic "0.7.11"] ;; latest release
+[provisdom/spectomic "1.0.78"] ;; latest release
 ```
 [](/dependency)
 
