@@ -96,6 +96,23 @@
           :db/cardinality :db.cardinality/one}
          (spectomic/find-type-via-generation ::map nil))))
 
+(deftest parse-spec-keys-test
+  (is (= #{:a :b :c :d :e}
+         (spectomic/parse-spec-keys
+           `(s/keys :req [:a (and :b (or :c :d))]
+                    :opt [:e]))))
+  (is (= #{:a :b :c}
+         (spectomic/parse-spec-keys
+           `(s/merge (s/keys :req [:a])
+                     (s/merge (s/keys :opt-un [:b])
+                              (s/keys :req [:c]))))))
+  (is (= #{:a :b}
+         (spectomic/parse-spec-keys `(s/or :a (s/keys :req [:a])
+                                           :b (s/keys :req [:b])))))
+  (is (= #{:a}
+         (spectomic/parse-spec-keys `(s/and (s/keys :req [:a])
+                                            (fn [_] true))))))
+
 (deftest datomic-schema-test
   (testing "basic datomic types"
     (is (= [{:db/ident       ::string
